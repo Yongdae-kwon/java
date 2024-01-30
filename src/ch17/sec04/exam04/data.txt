@@ -1,0 +1,6 @@
+{pno:0, name : 상품0, company : 멋진 회사, price : 2546, }
+{pno:1, name : 상품1, company : 멋진 회사, price : 6107, }
+{pno:2, name : 상품2, company : 멋진 회사, price : 845, }
+{pno:3, name : 상품3, company : 멋진 회사, price : 6495, }
+{pno:4, name : 상품4, company : 멋진 회사, price : 2177, }
+{pno:5, name : 상품5, company : 멋진 회사, price : 4850, }
