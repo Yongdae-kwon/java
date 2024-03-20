@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.codehows.mapper.BoardMapper">
+
+<select id="getList" resultType="com.codehows.domain.BoardVO">
+<![CDATA[
+	select * from tbl_board where bno > 0
+]]>
+</select>
+
+<sql id = "criteria">
+	<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+		<foreach item='type' collection="typeArr">
+			<trim prefix="OR">
+				<choose>
+					<when test="type == 'T'.toString()">
+						title like '%'||#{keyword}||'%'
+					</when>
+					<when test="type == 'C'.toString()">
+						content like '%'||#{keyword}||'%'
+					</when>
+					<when test="type == 'W'.toString()">
+						writer like '%'||#{keyword}||'%'
+					</when>
+				</choose>
+			</trim>
+		</foreach>
+	</trim>
+</sql>
+
+<!-- chapter13 페이징 처리 추가 작업  -->
+<select id = "getListWithPaging" resultType = "com.codehows.domain.BoardVO">
+<![CDATA[
+	select bno, title, content, writer, regdate, updatedate
+	from
+		(
+			select /*+INDEX_DESC(tbl_board pk_board) */
+				rownum rn, bno, title, content, writer, regdate, updatedate
+			from
+				tbl_board
+			where	
+]]>	
+	<!--  15.3 검색조건 처리를 위한 Criteria의 변화 -->
+	<!--  prefix = 앞에 suffix = 뒤에 prefix가 중복 일때 = OR -->
+		<include refid="criteria"></include>
+		
+	<![CDATA[
+			 rownum <= #{pageNum} * #{amount}
+		)
+	where rn >  (#{pageNum} -1) * #{amount}
+]]>
+</select>
+
+<!--  14.6 전체 데이터 개수 처리 추가 -->
+	<select id ="getTotalCount" resultType="int">
+		select count (*) from tbl_board where 
+			
+		<!-- 15.3 검색 조건에 따라 총 개수 계산 -->
+		<include refid="criteria"></include>		
+		bno > 0		
+	</select>
+
+	<insert id="insert">
+		insert into tbl_board (bno,title,content,writer)
+		values (seq_board.nextval, #{title}, #{content}, #{writer}) <!-- boardVO 안에 있는 값을 호출 -->
+	</insert>
+	
+	<insert id="insertSelectKey">
+		
+		<selectKey keyProperty="bno" order="BEFORE" resultType="long">	<!--  DB안에 있는 키 값을 반환 -->
+			select seq_board.nextval from dual		 <!--  dual 임시테이블 -->
+		</selectKey>
+		
+		insert into tbl_board (bno,title,content,writer)
+		values (#{bno}, #{title}, #{content}, #{writer})
+	</insert>
+	
+	<select id = "read" resultType = "com.codehows.domain.BoardVO">
+		select * from tbl_board where bno = #{bno}
+	</select>
+	
+	<delete id = "delete">
+		delete from tbl_board where bno = #{bno} <!--  사용자가 입력한 bno 번호가 맞는 게시물 삭제 -->
+	</delete>
+	
+	<update id = "update">
+		update tbl_board set
+			title = #{title}, content = #{content}, writer = #{writer}, updateDate = sysdate
+		where bno = #{bno}	
+	</update>
+	
+
+</mapper>
